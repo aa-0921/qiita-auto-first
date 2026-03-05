@@ -1,9 +1,9 @@
 /**
  * 技術 × キーワード or マインド・キャリア系トピックをランダムに選び、
- * OpenRouter で記事を生成して（現在はログ出力のみで）内容を確認するスクリプト
+ * OpenRouter で記事を生成して Qiita に投稿するスクリプト
  *
  * テーマ（技術・キーワード・マインド系トピック・プロンプト）は config/articleTheme.js で定義。
- * 必要環境変数: OPENROUTER_API_KEY
+ * 必要環境変数: QIITA_ACCESS_TOKEN, OPENROUTER_API_KEY
  *
  * 実行例:
  *   node scripts/autoCreateArticleFromTheme.js
@@ -12,6 +12,7 @@
 
 import {
   runWithCore,
+  QiitaAPIClient,
   createArticleFromTechKeyword,
   createArticleFromMotivationTopic,
 } from '@aa-0921/qiita-auto-core';
@@ -27,6 +28,10 @@ import {
 await runWithCore(async () => {
   if (!process.env.OPENROUTER_API_KEY) {
     throw new Error('OPENROUTER_API_KEY を設定してください（.env または環境変数）');
+  }
+  const token = process.env.QIITA_ACCESS_TOKEN;
+  if (!token) {
+    throw new Error('QIITA_ACCESS_TOKEN を設定してください（.env または環境変数）');
   }
 
   // 50% の確率で「技術 × キーワード」記事、50% で「マインド・キャリア系」記事を書く
@@ -65,17 +70,12 @@ await runWithCore(async () => {
   console.log('');
   console.log('========== 以上 ==========');
 
-  // Qiita 投稿は API 制限のため一時的にコメントアウト
-  // const token = process.env.QIITA_ACCESS_TOKEN;
-  // if (!token) {
-  //   throw new Error('QIITA_ACCESS_TOKEN を設定してください（.env または環境変数）');
-  // }
-  // const client = new QiitaAPIClient(token);
-  // const item = await client.createItem({
-  //   ...article,
-  //   private: false,
-  // });
-  // console.log('');
-  // console.log('投稿しました:', item.url);
-  // console.log('ID:', item.id);
+  const client = new QiitaAPIClient(token);
+  const item = await client.createItem({
+    ...article,
+    private: false,
+  });
+  console.log('');
+  console.log('投稿しました:', item.url);
+  console.log('ID:', item.id);
 });
