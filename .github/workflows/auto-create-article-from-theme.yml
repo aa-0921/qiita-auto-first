@@ -1,0 +1,44 @@
+# 技術×キーワード or マインド・キャリア系トピックで記事を生成し、Qiita に自動投稿する
+# 8 時間ごとに実行（JST 9:00, 17:00, 翌1:00 頃）
+# 手動実行: Actions タブから "Auto Create Article From Theme" の Run workflow
+
+name: Auto Create Article From Theme
+
+on:
+  schedule:
+    - cron: '0 */8 * * *'  # 0:00, 8:00, 16:00 UTC ≒ JST 9:00, 17:00, 翌1:00
+  workflow_dispatch:
+
+jobs:
+  auto-create-article:
+    runs-on: ubuntu-latest
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: qiita-auto-core をチェックアウト
+        uses: actions/checkout@v4
+        with:
+          repository: aa-0921/qiita-auto-core
+          path: qiita-auto-core
+          ref: main
+          token: ${{ secrets.CORE_REPO_TOKEN }}
+
+      - name: Node.js をセットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: 依存パッケージをインストール
+        run: |
+          cd qiita-auto-core && npm install
+          cd ..
+          npm install ./qiita-auto-core
+
+      - name: 環境変数を設定
+        run: |
+          echo "QIITA_ACCESS_TOKEN=${{ secrets.QIITA_ACCESS_TOKEN }}" >> $GITHUB_ENV
+          echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}" >> $GITHUB_ENV
+
+      - name: 記事生成・投稿スクリプトを実行
+        run: node scripts/autoCreateArticleFromTheme.js --bg
