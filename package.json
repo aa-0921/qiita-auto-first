@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "simplePost": "node scripts/simplePost.js",
-    "autoCreateArticleFromRss": "node scripts/autoCreateArticleFromRss.js"
+    "autoCreateArticleFromRss": "node scripts/autoCreateArticleFromRss.js",
+    "autoCreateArticleFromTheme": "node scripts/autoCreateArticleFromTheme.js"
   },
   "dependencies": {
     "@aa-0921/qiita-auto-core": "file:../qiita-auto-core",
