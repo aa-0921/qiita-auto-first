@@ -48,6 +48,18 @@ node scripts/autoCreateArticleFromTheme.js
 node scripts/autoCreateArticleFromTheme.js --bg
 ```
 
+### GitHub Actions で 8 時間毎に自動投稿
+
+ワークフロー `Auto Create Article From Theme` が **8 時間ごと**（cron: JST 9:00, 17:00, 翌1:00 頃）に記事を生成・投稿します。手動実行は Actions タブから「Run workflow」で可能です。
+
+**リポジトリの Settings → Secrets and variables → Actions で以下を設定してください。**
+
+| Secret 名 | 説明 |
+|-----------|------|
+| `QIITA_ACCESS_TOKEN` | Qiita の Personal Access Token（write_qiita スコープ） |
+| `OPENROUTER_API_KEY` | [OpenRouter](https://openrouter.ai/) の API キー |
+| `CORE_REPO_TOKEN` | 非公開の `qiita-auto-core` をチェックアウトするための PAT（repo スコープ） |
+
 ## RSS から記事を自動生成して投稿
 
 複数の RSS フィードからネタを 1 件ランダムに取得し、OpenRouter の無料モデルで記事を生成して Qiita に投稿します。
