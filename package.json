@@ -7,7 +7,9 @@
     "autoCreateArticleFromRss": "node scripts/autoCreateArticleFromRss.js",
     "autoCreateArticleFromTheme": "node scripts/autoCreateArticleFromTheme.js",
     "followTags": "node scripts/followTags.js",
-    "analyzeMyItems": "node scripts/analyzeMyItems.js"
+    "analyzeMyItems": "node scripts/analyzeMyItems.js",
+    "followUsers": "node scripts/followUsers.js",
+    "likeItems": "node scripts/likeItems.js"
   },
   "dependencies": {
     "@aa-0921/qiita-auto-core": "file:../qiita-auto-core",
