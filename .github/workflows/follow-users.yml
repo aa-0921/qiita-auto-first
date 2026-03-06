@@ -1,0 +1,42 @@
+# 駆け出し向けタグの記事著者をフォロー（1日1回・制限内）
+# 目安: 1日10〜20件・1件あたり1〜2分 → 1日1回で最大10件・90秒間隔
+
+name: Follow Users
+
+on:
+  schedule:
+    - cron: '0 1 * * *'  # 01:00 UTC = 10:00 JST
+  workflow_dispatch:
+
+jobs:
+  follow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: qiita-auto-core をチェックアウト
+        uses: actions/checkout@v4
+        with:
+          repository: aa-0921/qiita-auto-core
+          path: qiita-auto-core
+          ref: main
+          token: ${{ secrets.CORE_REPO_TOKEN }}
+
+      - name: Node.js をセットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: 依存パッケージをインストール
+        run: |
+          cd qiita-auto-core && npm install
+          cd ..
+          npm install ./qiita-auto-core
+
+      - name: 環境変数を設定
+        run: |
+          echo "QIITA_ACCESS_TOKEN=${{ secrets.QIITA_ACCESS_TOKEN }}" >> $GITHUB_ENV
+
+      - name: フォロースクリプトを実行
+        run: node scripts/followUsers.js

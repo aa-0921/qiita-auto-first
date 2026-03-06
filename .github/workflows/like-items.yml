@@ -1,0 +1,42 @@
+# 指定タグの新着記事にいいね（1日1回・制限内）
+# 目安: 1日20〜30件・短時間にまとめない → 1日1回で最大20件・120秒間隔
+
+name: Like Items
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # 03:00 UTC = 12:00 JST（フォローと2時間ずらす）
+  workflow_dispatch:
+
+jobs:
+  like:
+    runs-on: ubuntu-latest
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: qiita-auto-core をチェックアウト
+        uses: actions/checkout@v4
+        with:
+          repository: aa-0921/qiita-auto-core
+          path: qiita-auto-core
+          ref: main
+          token: ${{ secrets.CORE_REPO_TOKEN }}
+
+      - name: Node.js をセットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: 依存パッケージをインストール
+        run: |
+          cd qiita-auto-core && npm install
+          cd ..
+          npm install ./qiita-auto-core
+
+      - name: 環境変数を設定
+        run: |
+          echo "QIITA_ACCESS_TOKEN=${{ secrets.QIITA_ACCESS_TOKEN }}" >> $GITHUB_ENV
+
+      - name: いいねスクリプトを実行
+        run: node scripts/likeItems.js
