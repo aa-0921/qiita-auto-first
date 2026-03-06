@@ -28,8 +28,24 @@ export const TAGS_FOR_LIKE = [
   'rails',
 ];
 
+/** 1 回の実行でストックする最大件数（目安: 20〜30。いいねと同様に控えめに） */
+export const MAX_STOCK_PER_RUN = 20;
+
+/** ストック候補を取得するタグ（駆け出しエンジニア向け記事をストック） */
+export const TAGS_FOR_STOCK = [
+  '初心者',
+  '入門',
+  '未経験',
+  'react',
+  'javascript',
+  'プログラミング',
+];
+
 /** フォロー 1 件あたりの待機秒数（1〜2分推奨） */
 export const FOLLOW_DELAY_SEC = 90;
 
 /** いいね 1 件あたりの待機秒数 */
 export const LIKE_DELAY_SEC = 120;
+
+/** ストック 1 件あたりの待機秒数 */
+export const STOCK_DELAY_SEC = 120;
