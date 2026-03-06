@@ -1,7 +1,6 @@
 {
   "name": "qiita-auto-first",
   "version": "0.1.0",
-  "description": "Qiita 自動投稿（first アカウント）",
   "type": "module",
   "scripts": {
     "simplePost": "node scripts/simplePost.js",
