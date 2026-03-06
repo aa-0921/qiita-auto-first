@@ -26,9 +26,15 @@ import {
 } from '../config/articleTheme.js';
 
 await runWithCore(async () => {
-  if (!process.env.OPENROUTER_API_KEY) {
+  let apiKey = process.env.OPENROUTER_API_KEY?.trim();
+  if (!apiKey) {
     throw new Error('OPENROUTER_API_KEY を設定してください（.env または環境変数）');
   }
+  // 前後の空白・改行を除去してから渡す（.env のコピペミスで 401 になることがある）
+  process.env.OPENROUTER_API_KEY = apiKey;
+  const keyPreview = apiKey.length >= 4 ? `${apiKey.slice(0, 4)}...${apiKey.slice(-2)}` : '(短すぎ)';
+  console.log('[DEBUG] OPENROUTER_API_KEY: 設定済み 長さ=' + apiKey.length + ' プレビュー=' + keyPreview);
+
   const token = process.env.QIITA_ACCESS_TOKEN;
   if (!token) {
     throw new Error('QIITA_ACCESS_TOKEN を設定してください（.env または環境変数）');
