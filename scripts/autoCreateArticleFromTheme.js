@@ -25,6 +25,17 @@ import {
   MOTIVATION_PROMPT_TEMPLATE,
 } from '../config/articleTheme.js';
 
+// 投稿本文の末尾に自動で付与するプロモーション文（区切りは絵文字のみで横長に）
+const ARTICLE_FOOTER = `
+✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨
+
+習い事教室の先生向けに、SNS 投稿・生徒募集・保護者通知の文章を AI で生成する Web サービス「おしらせAI」を個人開発しました。Next.js + Supabase + LLM で構成しており、無料で月 10 回まで試用できます。よければ触ってみてください。
+
+→ おしらせAI: https://oshirase-ai.vercel.app/
+
+✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨
+`.trim();
+
 await runWithCore(async () => {
   let apiKey = process.env.OPENROUTER_API_KEY?.trim();
   if (!apiKey) {
@@ -58,6 +69,9 @@ await runWithCore(async () => {
         systemPrompt: SYSTEM_PROMPT,
         promptTemplate: PROMPT_TEMPLATE,
       });
+
+  // 投稿末尾にプロモーション文を追加
+  article.body = article.body.trimEnd() + '\n\n' + ARTICLE_FOOTER;
 
   // --- 生成記事の内容をログ出力（確認・改善用） ---
   console.log('');
