@@ -26,7 +26,12 @@ import {
 } from '../config/articleTheme.js';
 
 // 投稿本文の末尾に自動で付与するプロモーション文（区切りは絵文字のみで横長に）
-const ARTICLE_FOOTER = `
+const ARTICLE_PROMOTION_BLOCK = `
+https://www.crazygames.com/game/drop-defense
+
+スイカゲームとにゃんこ大戦争のようなタワーディフェンス系ゲームを組み合わせたゲームを作成しました！
+遊んでみていただけると嬉しいです🙇‍♂️
+
 ✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨
 
 海外テックニュースを追いたいけど、英語や情報量の多さで大変…という方向けに、
@@ -50,6 +55,31 @@ https://unityroom.com/games/nyampire_survivors
 
 ✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨✨
 `.trim();
+
+function insertFooterBeforeSecondHeading(body, footer) {
+  const lines = body.split('\n');
+  let headingCount = 0;
+  let insertAt = -1;
+
+  for (let i = 0; i < lines.length; i += 1) {
+    if (/^\s*#{1,6}\s+/.test(lines[i])) {
+      headingCount += 1;
+      if (headingCount === 2) {
+        insertAt = i;
+        break;
+      }
+    }
+  }
+
+  if (insertAt === -1) {
+    // 見出しが2つ未満の場合は従来どおり末尾に追加
+    return body.trimEnd() + '\n\n' + footer;
+  }
+
+  const before = lines.slice(0, insertAt).join('\n').trimEnd();
+  const after = lines.slice(insertAt).join('\n').trimStart();
+  return `${before}\n\n${footer}\n\n${after}`.trimEnd();
+}
 
 await runWithCore(async () => {
   let apiKey = process.env.OPENROUTER_API_KEY?.trim();
@@ -85,8 +115,8 @@ await runWithCore(async () => {
         promptTemplate: PROMPT_TEMPLATE,
       });
 
-  // 投稿末尾にプロモーション文を追加
-  article.body = article.body.trimEnd() + '\n\n' + ARTICLE_FOOTER;
+  // 本文の2つ目の見出し直前にプロモーション文を追加（見出し不足時は末尾）
+  article.body = insertFooterBeforeSecondHeading(article.body, ARTICLE_PROMOTION_BLOCK);
 
   // --- 生成記事の内容をログ出力（確認・改善用） ---
   console.log('');
