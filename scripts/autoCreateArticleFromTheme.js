@@ -23,7 +23,17 @@ import {
   PROMPT_TEMPLATE,
   MOTIVATION_TOPICS,
   MOTIVATION_PROMPT_TEMPLATE,
+  LISTICLE_TOPICS,
+  LISTICLE_SYSTEM_PROMPT,
+  LISTICLE_PROMPT_TEMPLATE,
 } from '../config/articleTheme.js';
+
+/**
+ * 記事タイプの出現比率
+ * 「〇〇10選」系（リスト記事）が最も伸びた実績があるため主力にし、残りを他タイプに割り振る
+ */
+const LISTICLE_RATE = 0.7;   // 〇〇10選（リスト記事）
+const MOTIVATION_RATE = 0.15; // マインド・キャリア系（残り 0.15 が技術 × キーワード）
 
 // 本文の2つ目の見出し直前などに挿入するプロモーション文（見出しが足りない場合は末尾に付与）
 const ARTICLE_PROMOTION_BLOCK = `
@@ -110,24 +120,44 @@ await runWithCore(async () => {
     throw new Error('QIITA_ACCESS_TOKEN を設定してください（.env または環境変数）');
   }
 
-  // 50% の確率で「技術 × キーワード」記事、50% で「マインド・キャリア系」記事を書く
-  const useMotivation = Math.random() < 0.5;
+  // 70%「〇〇10選」系、15%「マインド・キャリア系」、15%「技術 × キーワード」で記事タイプを決める
+  const rand = Math.random();
+  const articleType = rand < LISTICLE_RATE
+    ? 'listicle'
+    : rand < LISTICLE_RATE + MOTIVATION_RATE
+      ? 'motivation'
+      : 'techKeyword';
+  const ARTICLE_TYPE_LABELS = {
+    listicle: '〇〇10選（リスト記事）',
+    motivation: 'マインド・キャリア系（駆け出しエンジニア向けトピック）',
+    techKeyword: '技術 × キーワード',
+  };
   console.log('');
   console.log('--- 記事タイプ選択 ---');
-  console.log('選択されたタイプ:', useMotivation ? 'マインド・キャリア系（駆け出しエンジニア向けトピック）' : '技術 × キーワード');
+  console.log('選択されたタイプ:', ARTICLE_TYPE_LABELS[articleType]);
 
-  const article = useMotivation
-    ? await createArticleFromMotivationTopic({
-        topics: MOTIVATION_TOPICS,
-        systemPrompt: SYSTEM_PROMPT,
-        promptTemplate: MOTIVATION_PROMPT_TEMPLATE,
-      })
-    : await createArticleFromTechKeyword({
-        technologies: TECHNOLOGIES,
-        keywords: KEYWORDS,
-        systemPrompt: SYSTEM_PROMPT,
-        promptTemplate: PROMPT_TEMPLATE,
-      });
+  // リスト記事もトピック 1 つから生成するため、core の createArticleFromMotivationTopic（{{topic}} 置換）を流用する
+  let article;
+  if (articleType === 'listicle') {
+    article = await createArticleFromMotivationTopic({
+      topics: LISTICLE_TOPICS,
+      systemPrompt: LISTICLE_SYSTEM_PROMPT,
+      promptTemplate: LISTICLE_PROMPT_TEMPLATE,
+    });
+  } else if (articleType === 'motivation') {
+    article = await createArticleFromMotivationTopic({
+      topics: MOTIVATION_TOPICS,
+      systemPrompt: SYSTEM_PROMPT,
+      promptTemplate: MOTIVATION_PROMPT_TEMPLATE,
+    });
+  } else {
+    article = await createArticleFromTechKeyword({
+      technologies: TECHNOLOGIES,
+      keywords: KEYWORDS,
+      systemPrompt: SYSTEM_PROMPT,
+      promptTemplate: PROMPT_TEMPLATE,
+    });
+  }
 
   // 本文の2つ目の見出し直前にプロモーション文を追加（見出し不足時は末尾）
   article.body = insertFooterBeforeSecondHeading(article.body, ARTICLE_PROMOTION_BLOCK);
