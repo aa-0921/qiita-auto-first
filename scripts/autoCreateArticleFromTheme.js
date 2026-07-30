@@ -105,6 +105,31 @@ function insertFooterBeforeSecondHeading(body, footer) {
   return `${before}\n\n${footer}\n\n${after}`.trimEnd();
 }
 
+/**
+ * リスト記事の項目数が指定個数に足りているか確認し、不足していれば警告ログを出す
+ *
+ * core の品質チェックは ## が 3 個以上あれば合格するため、「10 選」というタイトルなのに
+ * 項目が数個しかない記事もそのまま投稿されうる。投稿は止めず、実態をログで追えるようにする。
+ */
+function warnIfListicleItemsMissing(title, body) {
+  // 「10 選」「7選」などから期待個数を取る
+  const expected = Number(title.match(/(\d+)\s*選/)?.[1] ?? 0);
+  if (!expected) {
+    console.log('[WARN] 項目数チェック: タイトルから個数を判定できません（「〇〇10選」形式になっていない可能性）');
+    return;
+  }
+
+  // ### 以下の小見出しは数えない。「まとめ」などの締めの見出しは項目に含めない
+  const headings = body.match(/^##[^#].*$/gm) || [];
+  const itemCount = headings.filter((h) => !/まとめ|おわりに|終わりに|最後に/.test(h)).length;
+
+  if (itemCount < expected) {
+    console.log(`[WARN] 項目数チェック: 不足（期待 ${expected} 個 / 実際 ${itemCount} 個）`);
+  } else {
+    console.log(`[OK] 項目数チェック: 期待 ${expected} 個 / 実際 ${itemCount} 個`);
+  }
+}
+
 await runWithCore(async () => {
   let apiKey = process.env.OPENROUTER_API_KEY?.trim();
   if (!apiKey) {
@@ -157,6 +182,11 @@ await runWithCore(async () => {
       systemPrompt: SYSTEM_PROMPT,
       promptTemplate: PROMPT_TEMPLATE,
     });
+  }
+
+  // リスト記事は「10 選」と書いてあるのに項目が足りないことがあるため、投稿前に確認する
+  if (articleType === 'listicle') {
+    warnIfListicleItemsMissing(article.title, article.body);
   }
 
   // 本文の2つ目の見出し直前にプロモーション文を追加（見出し不足時は末尾）
