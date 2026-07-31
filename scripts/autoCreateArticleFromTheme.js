@@ -35,6 +35,36 @@ import {
 const LISTICLE_RATE = 0.7;   // 〇〇10選（リスト記事）
 const MOTIVATION_RATE = 0.15; // マインド・キャリア系（残り 0.15 が技術 × キーワード）
 
+const ARTICLE_TYPE_LABELS = {
+  listicle: '〇〇10選（リスト記事）',
+  motivation: 'マインド・キャリア系（駆け出しエンジニア向けトピック）',
+  techKeyword: '技術 × キーワード',
+};
+
+/**
+ * 記事タイプを決める
+ *
+ * 通常は上の比率に従ってランダムに選ぶが、環境変数 ARTICLE_TYPE でタイプを固定できる
+ * （GitHub Actions の手動実行で、狙ったタイプの記事を動作確認するため）
+ */
+function pickArticleType() {
+  const forced = process.env.ARTICLE_TYPE?.trim();
+  if (forced && forced !== 'random') {
+    if (!ARTICLE_TYPE_LABELS[forced]) {
+      throw new Error(
+        `ARTICLE_TYPE の値が不正です: ${forced}（指定できるのは random / ${Object.keys(ARTICLE_TYPE_LABELS).join(' / ')}）`
+      );
+    }
+    console.log('ARTICLE_TYPE の指定によりタイプを固定します');
+    return forced;
+  }
+
+  const rand = Math.random();
+  if (rand < LISTICLE_RATE) return 'listicle';
+  if (rand < LISTICLE_RATE + MOTIVATION_RATE) return 'motivation';
+  return 'techKeyword';
+}
+
 // 本文の2つ目の見出し直前などに挿入するプロモーション文（見出しが足りない場合は末尾に付与）
 const ARTICLE_PROMOTION_BLOCK = `
 
@@ -146,17 +176,7 @@ await runWithCore(async () => {
   }
 
   // 70%「〇〇10選」系、15%「マインド・キャリア系」、15%「技術 × キーワード」で記事タイプを決める
-  const rand = Math.random();
-  const articleType = rand < LISTICLE_RATE
-    ? 'listicle'
-    : rand < LISTICLE_RATE + MOTIVATION_RATE
-      ? 'motivation'
-      : 'techKeyword';
-  const ARTICLE_TYPE_LABELS = {
-    listicle: '〇〇10選（リスト記事）',
-    motivation: 'マインド・キャリア系（駆け出しエンジニア向けトピック）',
-    techKeyword: '技術 × キーワード',
-  };
+  const articleType = pickArticleType();
   console.log('');
   console.log('--- 記事タイプ選択 ---');
   console.log('選択されたタイプ:', ARTICLE_TYPE_LABELS[articleType]);

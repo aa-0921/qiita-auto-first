@@ -8,6 +8,17 @@ on:
   schedule:
     - cron: '0 */8 * * *'  # 0:00, 8:00, 16:00 UTC ≒ JST 9:00, 17:00, 翌1:00
   workflow_dispatch:
+    inputs:
+      article_type:
+        description: '記事タイプ（動作確認用。random は通常どおり比率でランダム選択）'
+        type: choice
+        required: false
+        default: random
+        options:
+          - random
+          - listicle
+          - motivation
+          - techKeyword
 
 jobs:
   auto-create-article:
@@ -41,4 +52,7 @@ jobs:
           echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}" >> $GITHUB_ENV
 
       - name: 記事生成・投稿スクリプトを実行
+        # 手動実行で記事タイプを指定できるようにする（schedule 実行時は空になり random 扱い）
+        env:
+          ARTICLE_TYPE: ${{ inputs.article_type }}
         run: node scripts/autoCreateArticleFromTheme.js --bg
