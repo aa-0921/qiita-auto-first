@@ -1,12 +1,15 @@
 # 技術×キーワード or マインド・キャリア系トピックで記事を生成し、Qiita に自動投稿する
-# 8 時間ごとに実行（JST 9:00, 17:00, 翌1:00 頃）
+# 12 時間ごとに実行（JST 9:00, 21:00 頃）
 # 手動実行: Actions タブから "Auto Create Article From Theme" の Run workflow
 
 name: Auto Create Article From Theme
 
 on:
   schedule:
-    - cron: '0 */8 * * *'  # 0:00, 8:00, 16:00 UTC ≒ JST 9:00, 17:00, 翌1:00
+    # 1 日 3 本（8 時間ごと）だと Qiita の投稿数制限に引っかかり、
+    # 2026/07/28 以降は投稿の大半が 429 too_many_requests で失敗していた。
+    # 1 日 2 本に減らして様子を見る。
+    - cron: '0 */12 * * *'  # 0:00, 12:00 UTC ≒ JST 9:00, 21:00
   workflow_dispatch:
     inputs:
       article_type:
