@@ -1,0 +1,24 @@
+# 公開 repo は 60 日コミットが無いと GitHub が schedule を自動停止する（disabled_inactivity）
+# 記事投稿はコミットを残さないため、月 1 回空コミットを push して停止を防ぐ
+name: Keepalive
+
+on:
+  schedule:
+    - cron: '17 2 1 * *'  # 毎月1日 02:17 UTC = 11:17 JST
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: 空コミットを push する
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "chore: keepalive（定期実行の自動停止を防ぐ）"
+          git push
