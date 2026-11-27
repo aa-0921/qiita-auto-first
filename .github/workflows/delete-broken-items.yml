@@ -1,0 +1,21 @@
+# 壊れた記事4件を削除する一回限りの workflow（実行後にこのファイルごと削除する）
+name: Delete Broken Items (one-off)
+on:
+  workflow_dispatch:
+jobs:
+  delete:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 記事を削除する
+        env:
+          QIITA_ACCESS_TOKEN: ${{ secrets.QIITA_ACCESS_TOKEN }}
+        run: |
+          fail=0
+          for id in 487f18553f5a78ae312a 61e1427fa70c6499fd4d 1142045c84b60306ef86 152a4d9f18f4fc55dada; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE \
+              -H "Authorization: Bearer $QIITA_ACCESS_TOKEN" \
+              "https://qiita.com/api/v2/items/$id")
+            echo "$id -> $code"
+            [ "$code" = "204" ] || fail=1
+          done
+          exit $fail
