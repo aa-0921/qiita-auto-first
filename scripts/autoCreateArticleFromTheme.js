@@ -90,9 +90,15 @@ function insertFooterBeforeSecondHeading(body, footer) {
   const lines = body.split('\n');
   let headingCount = 0;
   let insertAt = -1;
+  // コードブロック内の「# コメント」を見出しと数えないよう、``` / ~~~ の内外を追う
+  let inFence = false;
 
   for (let i = 0; i < lines.length; i += 1) {
-    if (/^\s*#{1,6}\s+/.test(lines[i])) {
+    if (/^\s*(```|~~~)/.test(lines[i])) {
+      inFence = !inFence;
+      continue;
+    }
+    if (!inFence && /^\s*#{1,6}\s+/.test(lines[i])) {
       headingCount += 1;
       if (headingCount === 2) {
         insertAt = i;
