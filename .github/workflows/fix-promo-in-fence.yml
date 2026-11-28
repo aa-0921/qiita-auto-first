@@ -1,0 +1,13 @@
+# 公開済み記事でコードブロック内に入り込んだ紹介ゾーンを外に出す一回限りの workflow（実行後に削除する）
+name: Fix Promo In Code Block (one-off)
+on:
+  workflow_dispatch:
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 紹介ゾーンの位置を直す
+        env:
+          QIITA_ACCESS_TOKEN: ${{ secrets.QIITA_ACCESS_TOKEN }}
+        run: python3 -I .github/one-off/fix_promo_in_fence.py
